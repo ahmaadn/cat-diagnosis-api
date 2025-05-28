@@ -16,7 +16,9 @@ class Gejala(TimeStampMixin, Base):
     id_gejala: Mapped[str] = mapped_column(
         CHAR(5), primary_key=True, autoincrement=False, nullable=False
     )
-    nama_gejala: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    nama_gejala: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, unique=True
+    )
 
     rules: Mapped[list["Rule"]] = relationship(
         "Rule",
@@ -36,7 +38,9 @@ class Kelompok(TimeStampMixin, Base):
     id_kelompok: Mapped[int] = mapped_column(
         Integer, primary_key=True, autoincrement=True, nullable=False
     )
-    nama_kelompok: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    nama_kelompok: Mapped[str] = mapped_column(
+        VARCHAR(255), nullable=False, unique=True
+    )
 
     kelompok_gejala: Mapped["KelompokGejala"] = relationship(
         "KelompokGejala", back_populates="kelompok", cascade="all, delete-orphan"

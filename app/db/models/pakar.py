@@ -13,7 +13,7 @@ class Pakar(TimeStampMixin, Base):
         Integer, primary_key=True, autoincrement=True, nullable=False
     )
     nama_pakar: Mapped[str] = mapped_column(
-        VARCHAR(100), autoincrement=False, nullable=False
+        VARCHAR(100), autoincrement=False, nullable=False, unique=True
     )
 
     rule_cfs: Mapped[list[RuleCf]] = relationship("RuleCf", back_populates="pakar")

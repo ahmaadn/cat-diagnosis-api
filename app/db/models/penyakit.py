@@ -17,7 +17,7 @@ class Penyakit(TimeStampMixin, Base):
         CHAR(5), primary_key=True, autoincrement=False, nullable=False
     )
     nama_penyakit: Mapped[str] = mapped_column(
-        VARCHAR(255), autoincrement=False, nullable=False
+        VARCHAR(255), autoincrement=False, nullable=False, unique=True
     )
 
     rules: Mapped[list["Rule"]] = relationship(
