@@ -20,7 +20,8 @@ async def global_exception_handler(_, ext: Exception):
 async def app_exception_handler(_: Request, ext: AppExceptionError):
     """Handle application-specific exceptions."""
     return JSONResponse(
-        status_code=ext.status_code or status.HTTP_404_NOT_FOUND, content=ext.dump()
+        status_code=ext.status_code or status.HTTP_404_NOT_FOUND,
+        content=ext.dump(),
     )
 
 
