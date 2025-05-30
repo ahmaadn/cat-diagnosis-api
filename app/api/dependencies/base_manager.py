@@ -14,7 +14,6 @@ from app.utils.exceptions import (
     DuplicateNamaError,
     NotValidIDError,
 )
-from app.utils.generate_id import is_valid_id
 
 # Type variables for generic typing
 ModelType = TypeVar("ModelType")  # SQLAlchemy model
@@ -161,9 +160,7 @@ class BaseManager(Generic[ModelType, CreateSchemaType], ABC):
                     duplicate_ids.add(id_val)
                 elif name_val in existing_names:
                     duplicate_names.add(name_val)
-                elif not is_valid_id(
-                    id_val, prefix=self.prefix_id, length=self.length_id
-                ):
+                elif not self.is_valid_id(id_val):
                     not_valid_ids.add(id_val)
                 else:
                     existing_ids.add(id_val)
