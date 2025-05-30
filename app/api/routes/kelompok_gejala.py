@@ -11,16 +11,16 @@ from app.schemas.base import ResponsePayload
 from app.schemas.gejala import KelompokRead
 from app.schemas.pagination import PaginationSchema
 
-r = router = APIRouter(prefix="/kelompok", tags=["kelompok_gejala"])
+r = router = APIRouter(tags=["Kelompok"])
 
 
 @cbv(r)
-class GejalaRoute:
+class _Kelompok:
     session: AsyncSession = Depends(get_async_session)
     manager: KelompokManager = Depends(get_kelompok_manager)
 
     @r.post(
-        "/bulks",
+        "/kelompok/bulks",
         status_code=status.HTTP_201_CREATED,
         response_model=ResponsePayload[list[KelompokRead]],
     )
@@ -32,7 +32,7 @@ class GejalaRoute:
         )
 
     @r.post(
-        "/",
+        "/kelompok",
         status_code=status.HTTP_201_CREATED,
         response_model=ResponsePayload[KelompokRead],
     )
@@ -44,7 +44,7 @@ class GejalaRoute:
         )
 
     @r.get(
-        "/",
+        "/kelompok",
         status_code=status.HTTP_200_OK,
         response_model=PaginationSchema[KelompokRead],
     )

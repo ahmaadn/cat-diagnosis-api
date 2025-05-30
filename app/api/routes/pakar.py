@@ -12,15 +12,15 @@ from app.utils.common import ErrorCode
 from app.utils.exceptions import AppExceptionError
 from app.utils.pagination import paginate
 
-r = router = APIRouter(prefix="/pakar", tags=["Pakar"])
+r = router = APIRouter(tags=["Pakar"])
 
 
 @cbv(router)
-class PakarRouter:
+class _Pakar:
     session: AsyncSession = Depends(get_async_session)
 
     @r.post(
-        "/create",
+        "/pakar",
         status_code=status.HTTP_201_CREATED,
         response_model=ResponsePayload[PakarRead],
     )
@@ -35,11 +35,11 @@ class PakarRouter:
             items=new_pakar,
         )
 
-    @r.get("/all", response_model=PaginationSchema[PakarRead])
+    @r.get("/pakar", response_model=PaginationSchema[PakarRead])
     async def get_all_pakar(self):
         return await paginate(self.session, select(Pakar), 1, 9999999)
 
-    @r.get("/{pakar_id}", response_model=PakarRead)
+    @r.get("/pakar/{pakar_id}", response_model=PakarRead)
     async def get_pakar_by_id(self, pakar_id: int):
         result = await self.session.execute(
             select(Pakar).where(Pakar.id_pakar == pakar_id)
@@ -51,7 +51,7 @@ class PakarRouter:
             )
         return PakarRead.model_validate(pakar)
 
-    @r.put("/{pakar_id}/edit", response_model=PakarRead)
+    @r.put("/pakar/{pakar_id}", response_model=PakarRead)
     async def edit_pakar_name(self, pakar_id: int, new_data: PakarEdit):
         result = await self.session.execute(
             select(Pakar).where(Pakar.id_pakar == pakar_id)

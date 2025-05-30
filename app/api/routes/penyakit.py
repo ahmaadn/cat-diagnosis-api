@@ -13,18 +13,18 @@ from app.schemas.pagination import PaginationSchema
 from app.schemas.penyakit import PenyakitCreate, PenyakitRead
 from app.utils.pagination import paginate
 
-router = APIRouter(prefix="/penyakit", tags=["Penyakit"])
+router = APIRouter(tags=["Penyakit"])
 
 
 @cbv(router)
-class PenyakitRoute:
+class _Penyakit:
     session: AsyncSession = Depends(get_async_session)
 
     def __init__(self):
         self.manager = PenyakitManager(self.session)
 
     @router.post(
-        "/bulks",
+        "/penyakit/bulks",
         status_code=status.HTTP_201_CREATED,
         response_model=ResponsePayload[list[PenyakitRead]],
     )
@@ -33,7 +33,7 @@ class PenyakitRoute:
         return ResponsePayload(message="Berhasil membuat penyakit", items=penyakits)
 
     @router.get(
-        "/",
+        "/penyakit",
         status_code=status.HTTP_200_OK,
         response_model=PaginationSchema[PenyakitRead],
     )
