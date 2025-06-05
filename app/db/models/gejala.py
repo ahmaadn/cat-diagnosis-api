@@ -13,12 +13,10 @@ if TYPE_CHECKING:
 class Gejala(TimeStampMixin, Base):
     __tablename__ = "gejala"
 
-    id_gejala: Mapped[str] = mapped_column(
+    id: Mapped[str] = mapped_column(
         CHAR(5), primary_key=True, autoincrement=False, nullable=False
     )
-    nama_gejala: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, unique=True
-    )
+    nama: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, unique=True)
 
     rules: Mapped[list["Rule"]] = relationship(
         "Rule",
@@ -27,23 +25,27 @@ class Gejala(TimeStampMixin, Base):
         lazy="selectin",
     )
 
-    kelompok_gejala: Mapped["KelompokGejala"] = relationship(
-        "KelompokGejala", back_populates="gejala", cascade="all, delete-orphan"
+    kelompoks: Mapped[list["Kelompok"]] = relationship(
+        "Kelompok",
+        secondary="kelompok_gejala",
+        back_populates="gejalas",
+        lazy="selectin",
     )
 
 
 class Kelompok(TimeStampMixin, Base):
     __tablename__ = "kelompok"
 
-    id_kelompok: Mapped[int] = mapped_column(
+    id: Mapped[int] = mapped_column(
         Integer, primary_key=True, autoincrement=True, nullable=False
     )
-    nama_kelompok: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, unique=True
-    )
+    nama: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, unique=True)
 
-    kelompok_gejala: Mapped["KelompokGejala"] = relationship(
-        "KelompokGejala", back_populates="kelompok", cascade="all, delete-orphan"
+    gejalas: Mapped[list["Gejala"]] = relationship(
+        "Gejala",
+        secondary="kelompok_gejala",
+        back_populates="kelompoks",
+        lazy="selectin",
     )
 
 
@@ -52,7 +54,7 @@ class KelompokGejala(TimeStampMixin, Base):
 
     id_gejala: Mapped[str] = mapped_column(
         CHAR(5),
-        ForeignKey("gejala.id_gejala", ondelete="CASCADE"),
+        ForeignKey("gejala.id", ondelete="CASCADE"),
         primary_key=True,
         autoincrement=False,
         nullable=False,
@@ -60,15 +62,11 @@ class KelompokGejala(TimeStampMixin, Base):
 
     id_kelompok: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("kelompok.id_kelompok", ondelete="CASCADE"),
+        ForeignKey("kelompok.id", ondelete="CASCADE"),
         primary_key=True,
         autoincrement=False,
         nullable=False,
     )
 
-    gejala: Mapped["Gejala"] = relationship(
-        "Gejala", back_populates="kelompok_gejala"
-    )
-    kelompok: Mapped["Kelompok"] = relationship(
-        "Kelompok", back_populates="kelompok_gejala"
-    )
+    gejala = relationship("Gejala", back_populates="kelompoks")
+    kelompok = relationship("Kelompok", back_populates="gejalas")

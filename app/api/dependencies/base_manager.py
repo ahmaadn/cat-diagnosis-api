@@ -1,274 +1,264 @@
-from abc import ABC, abstractmethod
-from typing import Generic, List, Set, Tuple, Type, TypeVar, Union
+import logging
+from typing import Any, Generic, List, Optional, Type, TypeVar
 
 from fastapi import status
 from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import exc
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.sql.expression import func
 
 from app.utils.common import ErrorCode
-from app.utils.exceptions import (
-    AppExceptionError,
-    DuplicateIDError,
-    DuplicateNamaError,
-    NotValidIDError,
-)
+from app.utils.exceptions import AppExceptionError, NotValidIDError
 
-# Type variables for generic typing
-ModelType = TypeVar("ModelType")  # SQLAlchemy model
-CreateSchemaType = TypeVar(
-    "CreateSchemaType", bound=BaseModel
-)  # Pydantic create schema
+logger = logging.getLogger(__name__)
+
+ModelType = TypeVar("ModelType")
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
-class BaseManager(Generic[ModelType, CreateSchemaType], ABC):
+class BaseManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     """
-    Generic base manager class for CRUD operations with auto-ID generation.
-
-    Args:
-        ModelType: SQLAlchemy model class
-        CreateSchemaType: Pydantic schema for creation
+    Generic base class for CRUD and bulk operations on SQLAlchemy models.
+    Uses AppExceptionError for error handling.
     """
 
-    def __init__(
-        self, session: AsyncSession, prefix_id: str = "", length_id: int = 5
-    ):
+    def __init__(self, session: AsyncSession, model: Type[ModelType]):
+        if not model:
+            raise ValueError("SQLAlchemy model must be provided.")
         self.session = session
-        self.prefix_id = prefix_id
-        self.length_id = length_id
+        self.model = model
+        self._model_name = self.model.__name__
 
-    # Abstract properties that must be implemented by subclasses
-    @property
-    @abstractmethod
-    def model_class(self) -> Type[ModelType]:
-        """Return the SQLAlchemy model class"""
+    async def _execute_query(self, query):
+        try:
+            return await self.session.execute(query)
+        except exc.SQLAlchemyError as e:
+            logger.error(
+                f"SQLAlchemy error executing query for {self._model_name}: {e}",
+                exc_info=True,
+            )
+            raise AppExceptionError(
+                f"Internal db error accessing {self._model_name}.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            ) from None
+        except Exception as e:
+            logger.error(
+                f"Unexpected error executing query for {self._model_name}: {e}",
+                exc_info=True,
+            )
+            raise AppExceptionError(
+                f"Unexpected error accessing {self._model_name}.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            ) from None
 
-    @property
-    @abstractmethod
-    def create_schema_class(self) -> Type[CreateSchemaType]:
-        """Return the Pydantic create schema class"""
+    async def get_all(self, *, skip: int = 0, limit: int = 100) -> List[ModelType]:
+        logger.debug(f"Fetching all {self._model_name} (skip={skip}, limit={limit})")
+        query = select(self.model).offset(skip).limit(limit)
+        result = await self._execute_query(query)
+        return result.scalars().all()  # type: ignore
 
-    @property
-    @abstractmethod
-    def id_field_name(self) -> str:
-        """Return the name of the ID field in the model"""
+    async def get_by_id(self, item_id: Any) -> Optional[ModelType]:
+        logger.debug(f"Fetching {self._model_name} by ID: {item_id}")
+        query = select(self.model).where(self.model.id == item_id)  # type: ignore
+        result = await self._execute_query(query)
+        instance = result.scalars().first()
+        if not instance:
+            logger.info(f"{self._model_name} with ID '{item_id}' not found.")
+        return instance
 
-    @property
-    @abstractmethod
-    def name_field_name(self) -> str:
-        """Return the name of the name field in the model"""
+    async def get_by_id_or_fail(self, item_id: Any) -> ModelType:
+        instance = await self.get_by_id(item_id)
+        if not instance:
+            raise NotValidIDError(
+                f"{self._model_name} with ID '{item_id}' not found.",
+                status_code=status.HTTP_404_NOT_FOUND,
+                error_code=self.error_codes["not_valid_id"],
+            )
+        return instance
 
     @property
     def error_codes(self):
         return {
+            "not_found": ErrorCode.NOT_FOUND,
             "duplicate_id": ErrorCode.DUPLICATE_ID,
-            "duplicate_name": ErrorCode.DUPLICATE_NAMA,
+            "duplicate_nama": ErrorCode.DUPLICATE_NAMA,
             "not_valid_id": ErrorCode.NOT_VALID_ID,
         }
 
-    async def bulks(
-        self, data: List[Union[CreateSchemaType, str]]
-    ) -> List[ModelType]:
-        """
-        Bulk create entries from a list of create schemas or string names.
-        """
+    async def create(self, item_in: CreateSchemaType) -> ModelType:
+        logger.info(
+            f"Creating new {self._model_name} with data: "
+            f"{item_in.model_dump(exclude_unset=True)}"
+        )
+
+        await self.validate_schema(item_in)
+        db_item = await self.build(item_in)
+        self.session.add(db_item)
+        return await self.save(db_item)
+
+    async def validate_schema(self, item_in: CreateSchemaType): ...
+
+    async def update(
+        self, *, item_id: Any, item_update: UpdateSchemaType
+    ) -> ModelType:
+        logger.info(
+            f"Updating {self._model_name} ID: {item_id}, "
+            f"data: {item_update.model_dump(exclude_unset=True)}"
+        )
+
+        db_item = await self.get_by_id_or_fail(item_id)
+        update_data = item_update.model_dump(exclude_unset=True)
+        valid_update_data = await self._validate_update(db_item, update_data)
+
+        return await self._update(db_item, valid_update_data)
+
+    async def _validate_update(
+        self, db_item: ModelType, update_data: dict[str, Any]
+    ):
+        validated_update_dict = {}
+        for field, value in update_data.items():
+            if hasattr(db_item, field):
+                validated_update_dict[field] = value
+            else:
+                logger.warning(
+                    f"Field '{field}' not found on {self._model_name} during update."
+                )
+        return validated_update_dict
+
+    async def _update(self, db_item: ModelType, update_dict: dict[str, Any]):
+        for field, value in update_dict.items():
+            setattr(db_item, field, value)
+
+        self.session.add(db_item)
+        return await self.save(db_item)
+
+    async def delete(self, *, item_id: Any) -> ModelType:
+        logger.info(f"Deleting {self._model_name} ID: {item_id}")
+        db_item = await self.get_by_id_or_fail(item_id)
         try:
-            entries = await self.generate_entries(data)
-            return await self.saves(entries=await self.builds(entries))
-        except IntegrityError:
+            await self.session.delete(db_item)
+            await self.session.commit()
+            logger.info(f"{self._model_name} ID: {item_id} deleted.")
+            return db_item
+        except exc.IntegrityError as e:
             await self.session.rollback()
+            logger.error(
+                f"Integrity error deleting {self._model_name} ID {item_id}: {e}",
+                exc_info=True,
+            )
+            if "foreign key constraint" in str(e.orig).lower():
+                raise AppExceptionError(
+                    f"Cannot delete {self._model_name} ID "
+                    f"{item_id} due to related data.",
+                    status_code=status.HTTP_409_CONFLICT,
+                    error_code=ErrorCode.INTEGRITY_ERROR,
+                ) from None
             raise AppExceptionError(
-                "Integrity error occurred",
+                f"Failed to delete {self._model_name} ID {item_id} due to "
+                f"integrity error. Detail: {e.orig}",
+                status_code=status.HTTP_409_CONFLICT,
                 error_code=ErrorCode.INTEGRITY_ERROR,
-                status=status.HTTP_417_EXPECTATION_FAILED,
             ) from None
 
-    async def saves(self, entries: List[ModelType]) -> List[ModelType]:
-        """Save all entries to database"""
-        self.session.add_all(entries)
-        await self.session.commit()
-        for entry in entries:
-            await self.session.refresh(entry)
-        return entries
+        except exc.SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(
+                f"SQLAlchemy error deleting {self._model_name} ID {item_id}: {e}",
+                exc_info=True,
+            )
+            raise AppExceptionError(
+                f"Failed to delete {self._model_name} ID {item_id} due to db error.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            ) from None
 
-    async def save(self, entry: ModelType) -> ModelType:
-        """Save entry to database"""
-        self.session.add(entry)
-        await self.session.commit()
-        await self.session.refresh(entry)
-        return entry
+    async def count(self) -> int:
+        logger.debug(f"Counting {self._model_name}")
+        query = select(func.count()).select_from(self.model)
+        result = await self._execute_query(query)
+        total = result.scalar_one_or_none()
+        return total or 0
 
-    async def create(self, data: Union[CreateSchemaType, str]) -> ModelType:
-        """Create single entry"""
-        return (await self.bulks([data]))[0]
+    async def bulk(self, *, items_in: List[CreateSchemaType]) -> List[ModelType]:
+        logger.info(f"Bulk creating {len(items_in)} {self._model_name} items.")
+        if not items_in:
+            return []
 
-    async def build(self, data: CreateSchemaType) -> ModelType:
-        """Build model instance from create schema"""
-        return self.model_class(**data.model_dump())
+        for item in items_in:
+            await self.validate_schema(item_in=item)
 
-    async def builds(self, entries: List[CreateSchemaType]) -> List[ModelType]:
-        """Build multiple model instances from create schemas"""
-        return [await self.build(entry) for entry in entries]
-
-    async def fetch_all(self) -> List[ModelType]:
-        """Fetch all entries ordered by ID"""
-        result = await self.session.execute(select(self.model_class))
-        return result.scalars().all()  # type: ignore
-
-    async def get_existing_data(self) -> Tuple[Set[str], Set[str], Set[int]]:
-        """
-        Returns sets of existing IDs, names, and numeric parts of IDs.
-        """
-        entries = await self.fetch_all()
-        ids = {getattr(entry, self.id_field_name) for entry in entries}
-        names = {getattr(entry, self.name_field_name) for entry in entries}
-        nums = {int(id_val[len(self.prefix_id) :]) for id_val in ids}
-        return ids, names, nums
-
-    def get_missing_ids(self, nums: Set[int]) -> Set[int]:
-        """Get missing ID numbers in sequence"""
-        if not nums:
-            return set()
-        expected = set(range(min(nums), max(nums) + 1))
-        return expected - nums
-
-    async def generate_entries(
-        self, data: List[Union[str, CreateSchemaType]]
-    ) -> List[CreateSchemaType]:
-        """
-        Validates and generates create schema objects from input data.
-        """
-        existing_ids, existing_names, nums_ids = await self.get_existing_data()
-        duplicate_ids, duplicate_names, not_valid_ids = set(), set(), set()
-        string_entries, valid_objects = [], []
-
-        for obj in data:
-            if isinstance(obj, str):
-                if obj in existing_names:
-                    duplicate_names.add(obj)
-                else:
-                    existing_names.add(obj)
-                    string_entries.append(obj)
-            else:
-                id_val = getattr(
-                    obj, self.id_field_name
-                )  # Handle schema field naming
-                name_val = getattr(obj, self.name_field_name)
-
-                if id_val in existing_ids:
-                    duplicate_ids.add(id_val)
-                elif name_val in existing_names:
-                    duplicate_names.add(name_val)
-                elif not self.is_valid_id(id_val):
-                    not_valid_ids.add(id_val)
-                else:
-                    existing_ids.add(id_val)
-                    existing_names.add(name_val)
-                    nums_ids.add(self.split_id(id_val)[1])
-                    valid_objects.append(obj)
-
-        self._validate_entries(duplicate_ids, duplicate_names, not_valid_ids)
-
-        if not string_entries:
-            return valid_objects
-
-        return [
-            *valid_objects,
-            *self._assign_ids_to_strings(
-                string_entries, existing_ids, existing_names, nums_ids
-            ),
+        db_items = [
+            self.model(**item.model_dump(exclude_unset=True)) for item in items_in
         ]
-
-    def _validate_entries(
-        self,
-        duplicate_ids: Set[str],
-        duplicate_names: Set[str],
-        not_valid_ids: Set[str],
-    ):
-        """Validate entries and raise appropriate errors"""
-        if duplicate_ids:
-            raise DuplicateIDError(
-                f"terdapat duplicate ids: {', '.join(duplicate_ids)}",
-                error_code=self.error_codes["duplicate_id"],
-                status=status.HTTP_406_NOT_ACCEPTABLE,
-                data=list(duplicate_ids),
+        self.session.add_all(db_items)
+        try:
+            await self.session.commit()
+            for item in db_items:
+                await self.session.refresh(item)
+            logger.info(f"Bulk created {len(db_items)} {self._model_name} items.")
+            return db_items
+        except exc.IntegrityError as e:
+            await self.session.rollback()
+            logger.error(
+                f"Integrity error during bulk create {self._model_name}: {e}",
+                exc_info=True,
             )
-        if duplicate_names:
-            raise DuplicateNamaError(
-                f"terdapat duplicate nama: {', '.join(duplicate_names)}",
-                error_code=self.error_codes["duplicate_name"],
-                status=status.HTTP_406_NOT_ACCEPTABLE,
-                data=list(duplicate_names),
+            raise AppExceptionError(
+                f"Bulk create failed for {self._model_name} due to integrity error. "
+                f"All items rolled back. Detail: {e.orig}",
+                status_code=status.HTTP_409_CONFLICT,
+                error_code=ErrorCode.INTEGRITY_ERROR,
+            ) from None
+        except exc.SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(
+                f"SQLAlchemy error during bulk create {self._model_name}: {e}",
+                exc_info=True,
             )
-        if not_valid_ids:
-            raise NotValidIDError(
-                f"terdapat Id yang tidak valid: {', '.join(not_valid_ids)}",
-                f"Id harus diawali dengan {self.prefix_id} dan selanjutnya number contoh {self.prefix_id}0001",  # noqa: E501
-                error_code=self.error_codes["not_valid_id"],
-                status=status.HTTP_406_NOT_ACCEPTABLE,
-                data=list(not_valid_ids),
+            raise AppExceptionError(
+                f"Bulk create failed for {self._model_name} due to db error. "
+                f"All items rolled back.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            ) from None
+
+    async def build(self, create_schema: CreateSchemaType) -> ModelType:
+        data = create_schema.model_dump(exclude_unset=True)
+        return self.model(**data)
+
+    async def save(self, db_item: ModelType) -> ModelType:
+        item_id = db_item.id  # type: ignore
+
+        try:
+            await self.session.commit()
+            await self.session.refresh(db_item)
+            logger.info(f"{self._model_name} ID: {item_id} updated.")
+            return db_item
+
+        except exc.IntegrityError as e:
+            await self.session.rollback()
+            logger.error(
+                f"Integrity error updating {self._model_name} ID {item_id}: {e}",
+                exc_info=True,
             )
-
-    def _assign_ids_to_strings(
-        self,
-        string_entries: List[str],
-        existing_ids: Set[str],
-        existing_names: Set[str],
-        nums_ids: Set[int],
-    ) -> List[CreateSchemaType]:
-        """
-        Assigns unique IDs to string entries, filling missing numbers first.
-        """
-        missing_nums = self.get_missing_ids(nums_ids)
-        objs = []
-
-        # Assign missing IDs
-        for num in sorted(missing_nums):
-            if not string_entries:
-                break
-            new_id = self.create_id(num)
-            new_name = string_entries.pop(0)
-            if new_id not in existing_ids:
-                existing_ids.add(new_id)
-                nums_ids.add(num)
-                # Create schema instance dynamically
-                schema_data = {
-                    self.id_field_name: new_id,
-                    self.name_field_name: new_name,
-                }
-                objs.append(self.create_schema_class(**schema_data))
-
-        # Assign new IDs for remaining entries
-        next_num = max(nums_ids, default=0) + 1
-        for name in string_entries:
-            new_id = self.create_id(next_num)
-            if new_id not in existing_ids:
-                schema_data = {
-                    self.id_field_name: new_id,
-                    self.name_field_name: name,
-                }
-                objs.append(self.create_schema_class(**schema_data))
-                existing_ids.add(new_id)
-                nums_ids.add(next_num)
-            next_num += 1
-
-        return objs
-
-    def split_id(self, id_val: str) -> Tuple[str, int]:
-        """Split ID into prefix and numeric parts"""
-        return id_val[: len(self.prefix_id)], int(id_val[len(self.prefix_id) :])
-
-    def create_id(self, n: int) -> str:
-        """Create ID with proper formatting"""
-        num_digits = self.length_id - len(self.prefix_id)
-        return f"{self.prefix_id}{n:0{num_digits}d}"
-
-    def is_valid_id(self, id: str):
-        if self.length_id != len(id):
-            return False
-
-        pre_id, num = id[: len(self.prefix_id)], id[len(self.prefix_id) :]
-        if pre_id != self.prefix_id:
-            return False
-        return num.isdigit()
+            raise AppExceptionError(
+                f"Failed to update {self._model_name} ID {item_id}.",
+                f"Data may conflict. Detail: {e.orig}",
+                status_code=status.HTTP_409_CONFLICT,
+                error_code=ErrorCode.INTEGRITY_ERROR,
+            ) from None
+        except exc.SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(
+                f"SQLAlchemy error updating {self._model_name} ID {item_id}: {e}",
+                exc_info=True,
+            )
+            raise AppExceptionError(
+                f"Failed to update {self._model_name} ID {item_id} due to db error.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            ) from None

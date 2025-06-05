@@ -2,10 +2,14 @@ from app.schemas.base import BaseSchema
 
 
 class PenyakitCreate(BaseSchema):
-    id_penyakit: str
-    nama_penyakit: str
+    id: str | None = None
+    nama: str
+
+
+class PenyakitUpdate(BaseSchema):
+    nama: str
 
 
 class PenyakitRead(BaseSchema):
-    id_penyakit: str
-    nama_penyakit: str
+    id: str
+    nama: str
