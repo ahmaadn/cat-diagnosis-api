@@ -5,37 +5,38 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.penyakit_manager import (
     PenyakitManager,
+    get_penyakit_manager,
 )
 from app.api.dependencies.sessions import get_async_session
 from app.db.models.penyakit import Penyakit
-from app.schemas.base import ResponsePayload
 from app.schemas.pagination import PaginationSchema
-from app.schemas.penyakit import PenyakitCreate, PenyakitRead
+from app.schemas.penyakit import PenyakitCreate, PenyakitRead, PenyakitUpdate
 from app.utils.pagination import paginate
 
-router = APIRouter(tags=["Penyakit"])
+r = router = APIRouter(tags=["Penyakit"])
 
 
 @cbv(router)
 class _Penyakit:
     session: AsyncSession = Depends(get_async_session)
+    manager: PenyakitManager = Depends(get_penyakit_manager)
 
-    def __init__(self):
-        self.manager = PenyakitManager(self.session)
-
-    @router.post(
-        "/penyakit/bulks",
-        status_code=status.HTTP_201_CREATED,
-        response_model=ResponsePayload[list[PenyakitRead]],
-    )
-    async def add_penyakit_bulks(self, data: list[str | PenyakitCreate]):
-        penyakits = await self.manager.bulks(data)
-        return ResponsePayload(message="Berhasil membuat penyakit", items=penyakits)
-
-    @router.get(
+    @r.post(
         "/penyakit",
-        status_code=status.HTTP_200_OK,
-        response_model=PaginationSchema[PenyakitRead],
+        status_code=status.HTTP_201_CREATED,
+        response_model=PenyakitRead,
     )
-    async def get_all_penyakits(self):
-        return await paginate(self.session, select(Penyakit), page=1, per_page=9999)
+    async def create_penyakit(self, penyakit: PenyakitCreate):
+        return await self.manager.create(penyakit)
+
+    @r.get("/penyakit", response_model=PaginationSchema[PenyakitRead])
+    async def get_all_penyakit(self):
+        return await paginate(self.session, select(Penyakit), 1, 9999999)
+
+    @r.get("/penyakit/{penyakit_id}", response_model=PenyakitRead)
+    async def get_penyakit_by_id(self, penyakit_id: str):
+        return await self.manager.get_by_id_or_fail(penyakit_id)
+
+    @r.put("/penyakit/{penyakit_id}", response_model=PenyakitRead)
+    async def update_pebyakit(self, penyakit_id: str, new_data: PenyakitUpdate):
+        return await self.manager.update(item_id=penyakit_id, item_update=new_data)

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from fastapi_utils.cbv import cbv
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.kelompok_manager import (
@@ -7,50 +8,39 @@ from app.api.dependencies.kelompok_manager import (
     get_kelompok_manager,
 )
 from app.api.dependencies.sessions import get_async_session
-from app.schemas.base import ResponsePayload
-from app.schemas.gejala import KelompokRead
+from app.db.models.gejala import Kelompok
+from app.schemas.gejala import (
+    KelompokCreate,
+    KelompokRead,
+    KelompokUpdate,
+)
 from app.schemas.pagination import PaginationSchema
+from app.utils.pagination import paginate
 
 r = router = APIRouter(tags=["Kelompok"])
 
 
-@cbv(r)
+@cbv(router)
 class _Kelompok:
     session: AsyncSession = Depends(get_async_session)
     manager: KelompokManager = Depends(get_kelompok_manager)
 
     @r.post(
-        "/kelompok/bulks",
-        status_code=status.HTTP_201_CREATED,
-        response_model=ResponsePayload[list[KelompokRead]],
-    )
-    async def bulks(self, data: list[str]):
-        kelompoks = await self.manager.bulks(data)  # type: ignore
-        return ResponsePayload(
-            message=f"Kelompok Gekala Berhasil dibuat sebanyak {len(kelompoks)}",
-            items=kelompoks,
-        )
-
-    @r.post(
         "/kelompok",
         status_code=status.HTTP_201_CREATED,
-        response_model=ResponsePayload[KelompokRead],
+        response_model=KelompokRead,
     )
-    async def add(self, data: str):
-        kelompok = await self.manager.create(data)  # type: ignore
-        return ResponsePayload(
-            message="Kelompok Gekala Berhasil dibuat",
-            items=kelompok,
-        )
+    async def create_kelompok(self, kelompok: KelompokCreate):
+        return await self.manager.create(kelompok)
 
-    @r.get(
-        "/kelompok",
-        status_code=status.HTTP_200_OK,
-        response_model=PaginationSchema[KelompokRead],
-    )
-    async def get_all(self):
-        data = await self.manager.fetch_all()
+    @r.get("/kelompok", response_model=PaginationSchema[KelompokRead])
+    async def get_all_kelompok(self):
+        return await paginate(self.session, select(Kelompok), 1, 9999999)
 
-        return PaginationSchema(
-            count=len(data), items=data, curr_page=1, total_page=1
-        )
+    @r.get("/kelompok/{kelompok_id}", response_model=KelompokRead)
+    async def get_kelompok_by_id(self, kelompok_id: int):
+        return await self.manager.get_by_id_or_fail(kelompok_id)
+
+    @r.put("/kelompok/{kelompok_id}", response_model=KelompokRead)
+    async def update_kelompok(self, kelompok_id: int, new_data: KelompokUpdate):
+        return await self.manager.update(item_id=kelompok_id, item_update=new_data)

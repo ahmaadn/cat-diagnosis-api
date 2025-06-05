@@ -6,19 +6,37 @@ class ErrorCode(StrEnum):
     def _generate_next_value_(name, start, count, last_values) -> str:
         return name.upper()
 
+    # APP ERROR
     APP_ERROR = auto()
-    PAKAR_NOT_FOUND = auto()
+    INTERNAL_SERVER_ERROR = auto()
+    INTEGRITY_ERROR = auto()
 
+    # BASE
+    NOT_FOUND = auto()
     DUPLICATE_ID = auto()
     DUPLICATE_NAMA = auto()
     NOT_VALID_ID = auto()
 
-    DUPLICATE_ID_PENYAKIT = auto()
-    DUPLICATE_NAMA_PENYAKIT = auto()
+    # PAKAR
+    PAKAR_NOT_FOUND = auto()
+    ID_PAKAR_DUPLICATE = auto()
+    NAMA_PAKAR_DUPLICATE = auto()
+    NOT_VALID_ID_PAKAR = auto()
+
+    # PENYAKIT
+    PENYAKIT_NOT_FOUND = auto()
+    ID_PENYAKIT_DUPLICATE = auto()
+    NAMA_PENYAKIT_DUPLICATE = auto()
     NOT_VALID_ID_PENYAKIT = auto()
 
-    DUPLICATE_ID_GEJALA = auto()
-    DUPLICATE_NAMA_GEJALA = auto()
+    # GEJALA
+    GEJALA_NOT_FOUND = auto()
+    ID_GEJALA_DUPLICATE = auto()
+    NAMA_GEJALA_DUPLICATE = auto()
+    NOT_VALID_ID_GEJALA = auto()
 
-    BULK_PENYAKIT_ERROR = auto()
-    INTEGRITY_ERROR = auto()
+    # KELOMPOK
+    NOT_FOUND_KELOMPOK = auto()
+    ID_KELOMPOK_DUPLICATE = auto()
+    NAMA_KELOMPOK_DUPLICATE = auto()
+    NOT_VALID_ID_KELOMPOK = auto()

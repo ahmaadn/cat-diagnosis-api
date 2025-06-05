@@ -12,14 +12,14 @@ class AppExceptionError(Exception):
         self,
         *messages: str,
         error_code: ErrorCode | None = None,
-        status: int = status.HTTP_404_NOT_FOUND,
+        status_code: int = status.HTTP_404_NOT_FOUND,
         **kwargs,
     ):
         if error_code is not None:
             self.error_code = error_code
 
         self.messages = list(messages)
-        self.status_code = status
+        self.status_code = status_code
         self.kwargs = kwargs or {}
 
         super().__init__(self.messages)

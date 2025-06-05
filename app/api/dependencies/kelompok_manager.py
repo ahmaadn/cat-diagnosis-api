@@ -1,81 +1,100 @@
-from typing import List
+import logging
+from typing import Any
 
 from fastapi import Depends, status
-from sqlalchemy import select
+from sqlalchemy import exc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.base_manager import BaseManager
 from app.api.dependencies.sessions import get_async_session
-from app.db.models.gejala import Kelompok
-from app.schemas.gejala import KelompokCreate
-from app.utils.exceptions import DuplicateNamaError
+from app.db.models.gejala import Kelompok, KelompokGejala
+from app.schemas.gejala import KelomopokGejalaCreate, KelompokCreate, KelompokUpdate
+from app.utils.common import ErrorCode
+from app.utils.exceptions import (
+    AppExceptionError,
+    NotValidIDError,
+)
+
+logger = logging.getLogger(__name__)
 
 
-class KelompokManager(BaseManager[Kelompok, KelompokCreate]):
+class KelompokGejalaManager(
+    BaseManager[KelompokGejala, KelomopokGejalaCreate, KelomopokGejalaCreate]
+):
     def __init__(self, session: AsyncSession):
-        super().__init__(session)
+        super().__init__(session, KelompokGejala)
 
-    async def get_existing_data(self):
-        data = await self.fetch_all()
-        return [name.nama_kelompok for name in data]
-
-    async def generate_entries(
-        self, data: List[str | KelompokCreate]
-    ) -> List[KelompokCreate]:
-        existing_name = await self.get_existing_data()
-        objs, duplicate_name = [], []
-        objs = []
-        for obj in data:
-            if isinstance(obj, str):
-                if obj in existing_name:
-                    duplicate_name.append(obj)
-                else:
-                    objs.append(self.create_schema_class(nama_kelompok=obj))
-                    existing_name.append(obj)
-            elif obj.nama_kelompok in existing_name:
-                duplicate_name.append(obj.nama_kelompok)
-            else:
-                objs.append(obj)
-                existing_name.append(obj.nama_kelompok)
-
-        self._validate_entries(duplicate_name)
-        return objs
-
-    def _validate_entries(self, duplicate_name: list[str]):
-        if duplicate_name:
-            raise DuplicateNamaError(
-                f"terdapat duplicate nama: {', '.join(duplicate_name)}",
-                error_code=self.error_codes["duplicate_name"],
-                status=status.HTTP_406_NOT_ACCEPTABLE,
-                data=list(duplicate_name),
+    async def bulks(self, id_gejala: str, items_in: list[int]):
+        for item in items_in:
+            await self.create(
+                item_in=KelomopokGejalaCreate(id_gejala=id_gejala, id_kelompok=item)
             )
 
-    async def is_existing(self, nama: str):
-        _is = await self.session.execute(
-            select(Kelompok).where(Kelompok.nama_kelompok == nama)
-        )
-        return _is.one_or_none()
+    async def save(self, db_item: KelompokGejala):
+        id_gejala = db_item.id_gejala  # type: ignore
+        id_kelompok = db_item.id_kelompok  # type: ignore
+        item_id = f"{id_gejala}-{id_kelompok}"
+
+        try:
+            await self.session.commit()
+            await self.session.refresh(db_item)
+            logger.info(f"{self._model_name} ID Gejala: {item_id} updated.")
+            return db_item
+
+        except exc.IntegrityError as e:
+            await self.session.rollback()
+            logger.error(
+                f"Integrity error updating {self._model_name} ID {item_id}: {e}",
+                exc_info=True,
+            )
+            raise AppExceptionError(
+                f"Failed to update {self._model_name} ID {item_id}.",
+                f"Data may conflict. Detail: {e.orig}",
+                status_code=status.HTTP_409_CONFLICT,
+                error_code=ErrorCode.INTEGRITY_ERROR,
+            ) from None
+        except exc.SQLAlchemyError as e:
+            await self.session.rollback()
+            logger.error(
+                f"SQLAlchemy error updating {self._model_name} ID {item_id}: {e}",
+                exc_info=True,
+            )
+            raise AppExceptionError(
+                f"Failed to update {self._model_name} ID {item_id} due to db error.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            ) from None
+
+    async def update(self, *, item_id: Any, item_update: None) -> KelompokGejala:
+        raise NotImplementedError
+
+
+class KelompokManager(BaseManager[Kelompok, KelompokCreate, KelompokUpdate]):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, Kelompok)
 
     @property
-    def model_class(self):
-        return Kelompok
+    def error_codes(self):
+        return {
+            "not_found": ErrorCode.GEJALA_NOT_FOUND,
+            "duplicate_id": ErrorCode.ID_GEJALA_DUPLICATE,
+            "duplicate_nama": ErrorCode.NAMA_GEJALA_DUPLICATE,
+            "not_valid_id": ErrorCode.NOT_VALID_ID_GEJALA,
+        }
 
-    @property
-    def create_schema_class(self):
-        return KelompokCreate
+    async def is_valid_ids(self, ids: list[int]):
+        kelompoks = await self.get_all()
+        exists = {kelompok.id for kelompok in kelompoks}
+        missing_ids = set(ids) - exists
+        if missing_ids:
+            raise NotValidIDError(
+                "ids tidak valid",
+                f"ids: {' '.join(map(str, missing_ids))}",
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                error_code=self.error_codes["not_found"],
+                data=list(map(str, missing_ids)),
+            )
 
-    @property
-    def id_field_name(self):
-        return "id_penyakit"
 
-    @property
-    def name_field_name(self):
-        return "nama_penyakit"
-
-
-def get_kelompok_manager(session: AsyncSession = Depends(get_async_session)):
-    """
-    Dependency function that provides an instance of PenyakitManager
-    using the given database session.
-    """
+async def get_kelompok_manager(session: AsyncSession = Depends(get_async_session)):
     yield KelompokManager(session)

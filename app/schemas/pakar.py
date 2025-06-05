@@ -2,13 +2,14 @@ from app.schemas.base import BaseSchema
 
 
 class PakarCreate(BaseSchema):
-    nama_pakar: str
+    id: str | None = None
+    nama: str
 
 
 class PakarRead(BaseSchema):
-    id_pakar: int
-    nama_pakar: str
+    id: str
+    nama: str
 
 
-class PakarEdit(BaseSchema):
-    nama_pakar: str
+class PakarUpdate(BaseSchema):
+    nama: str
