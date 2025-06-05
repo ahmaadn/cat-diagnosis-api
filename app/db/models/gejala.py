@@ -67,6 +67,3 @@ class KelompokGejala(TimeStampMixin, Base):
         autoincrement=False,
         nullable=False,
     )
-
-    gejala = relationship("Gejala", back_populates="kelompoks")
-    kelompok = relationship("Kelompok", back_populates="gejalas")
