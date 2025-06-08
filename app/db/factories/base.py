@@ -16,7 +16,7 @@ def default_session_maker():
     return async_session_maker
 
 
-class AsyncFactoryMetaClass(FactoryMetaClass):
+class AsyncFactoryMetaClass(FactoryMetaClass):  # type: ignore[misc]
     async def __call__(cls, **kwargs: Any) -> T | StubObject:  # noqa: N805
         if cls._meta.strategy == enums.BUILD_STRATEGY:
             return await cls.build(**kwargs)
