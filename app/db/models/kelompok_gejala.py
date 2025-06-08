@@ -1,4 +1,4 @@
-from sqlalchemy import CHAR, ForeignKey, Integer
+from sqlalchemy import VARCHAR, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -8,7 +8,7 @@ class KelompokGejala(Base):
     __tablename__ = "kelompok_gejala"
 
     id_gejala: Mapped[str] = mapped_column(
-        CHAR(5),
+        VARCHAR(5),
         ForeignKey("gejala.id", ondelete="CASCADE"),
         primary_key=True,
         autoincrement=False,

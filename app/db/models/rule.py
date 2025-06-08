@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CHAR, ForeignKey
+from sqlalchemy import VARCHAR, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -13,15 +13,15 @@ class Rule(Base):
     __tablename__ = "rule"
 
     id: Mapped[str] = mapped_column(
-        CHAR(8), primary_key=True, autoincrement=False, nullable=False
+        VARCHAR(8), primary_key=True, autoincrement=False, nullable=False
     )
     id_penyakit: Mapped[str] = mapped_column(
-        CHAR(5),
+        VARCHAR(5),
         ForeignKey("penyakit.id", ondelete="CASCADE"),
         nullable=True,
     )
     id_gejala: Mapped[str] = mapped_column(
-        CHAR(5), ForeignKey("gejala.id", ondelete="CASCADE"), nullable=True
+        VARCHAR(5), ForeignKey("gejala.id", ondelete="CASCADE"), nullable=True
     )
 
     penyakit = relationship("Penyakit", back_populates="rules")

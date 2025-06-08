@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CHAR, VARCHAR, Text
+from sqlalchemy import VARCHAR, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -14,7 +14,7 @@ class Penyakit(TimeStampMixin, Base):
     __tablename__ = "penyakit"
 
     id: Mapped[str] = mapped_column(
-        CHAR(5), primary_key=True, autoincrement=False, nullable=False
+        VARCHAR(5), primary_key=True, autoincrement=False, nullable=False
     )
     nama: Mapped[str] = mapped_column(
         VARCHAR(255), autoincrement=False, nullable=False, unique=True
