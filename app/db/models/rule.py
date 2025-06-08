@@ -24,10 +24,13 @@ class Rule(Base):
         VARCHAR(5), ForeignKey("gejala.id", ondelete="CASCADE"), nullable=True
     )
 
-    penyakit = relationship("Penyakit", back_populates="rules")
+    penyakit = relationship("Penyakit", back_populates="rules", lazy="selectin")
 
-    gejala = relationship("Gejala", back_populates="rules")
+    gejala = relationship("Gejala", back_populates="rules", lazy="selectin")
 
     rule_cfs = relationship(
-        "RuleCf", back_populates="rule", cascade="all, delete-orphan"
+        "RuleCf",
+        back_populates="rule",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )

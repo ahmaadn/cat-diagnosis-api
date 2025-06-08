@@ -26,6 +26,7 @@ class Gejala(TimeStampMixin, Base):
         "Rule",
         back_populates="gejala",
         cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     kelompoks = relationship(

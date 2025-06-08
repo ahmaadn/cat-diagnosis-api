@@ -16,5 +16,8 @@ class Pakar(TimeStampMixin, Base):
     )
 
     rule_cfs = relationship(
-        "RuleCf", back_populates="pakar", cascade="all, delete-orphan"
+        "RuleCf",
+        back_populates="pakar",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )

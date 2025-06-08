@@ -26,5 +26,5 @@ class RuleCf(Base):
     )
     nilai: Mapped[float] = mapped_column(Double(precision=53), nullable=False)
 
-    rule = relationship("Rule", back_populates="rule_cfs")
-    pakar = relationship("Pakar", back_populates="rule_cfs")
+    rule = relationship("Rule", back_populates="rule_cfs", lazy="selectin")
+    pakar = relationship("Pakar", back_populates="rule_cfs", lazy="selectin")
