@@ -49,3 +49,22 @@ class _Pakar:
     @r.put("/gejala/{gejala_id}", response_model=GejalaRead)
     async def update_gejala(self, gejala_id: str, new_data: GejalaUpdate):
         return await self.manager.update(item_id=gejala_id, item_update=new_data)
+
+    @r.delete("/gejala/{gejala_id}", status_code=status.HTTP_202_ACCEPTED)
+    async def delete_gejala(self, gejala_id: str):
+        await self.manager.delete(item_id=gejala_id)
+        return {"message": f"success delete gejala id {gejala_id}"}
+
+    @r.get(
+        "/gejala/{gejala_id}/kelompoks",
+        response_model=PaginationSchema[KelompokRead],
+        status_code=status.HTTP_200_OK,
+    )
+    async def get_detail_kelompoks_by_gejala(
+        self, gejala_id: str, page: int = 1, per_page: int = 200
+    ):
+        query = (
+            select(Kelompok).join(Kelompok.gejalas).filter(Gejala.id == gejala_id)
+        )
+
+        return await paginate(self.session, query, page, per_page)
