@@ -1,55 +1,55 @@
-kode_gejala,deskripsi_gejala
-G001,"Demam / Suhu tubuh meningkat"
-G002,"Menggaruk, menjilat, atau menggigit bagian tubuh (termasuk telinga, dagu, kaki, ekor, leher) secara berlebihan / Gatal"
-G003,"Kerontokan bulu, penipisan bulu, kebotakan (bisa berpola/melingkar atau di area spesifik seperti dagu, ekor, dekat kemaluan), bulu kasar/pucat"
-G004,"Ruam kemerahan pada kulit / Lesi melingkar di kepala/badan"
-G005,"Penebalan kulit di bagian tertentu / Penebalan area lesi"
-G006,"Kulit terlihat kering / Kasar"
-G007,"Muncul ketombe pada rambut"
-G008,"Terdapat kerak (bisa melingkar, hitam di mulut/dagu, di sekitar telinga, tebal abu-abu di kepala/punggung, bersisik di kuping/kepala) / Kulit berkerak"
-G009,"Sering menggelengkan kepala"
-G010,"Telinga berbau menyengat / Bau tak sedap"
-G011,"Perubahan perilaku / Stres / Gelisah / Agresif / Sensitif"
-G012,"Mengeluarkan nanah dari kelenjar susu"
-G013,"Kelenjar susu memerah / Meradang / Bengkak / Pecah"
-G014,"Kucing merasa kesakitan"
-G015,"Nafsu makan menurun / Berkurang"
-G016,"Kucing terlihat lemas / Lesu / Lemah"
-G017,"Perut kucing membesar (bukan hamil)"
-G018,"Keluar leleran seperti nanah dari kelamin"
-G019,"Menjilati bagian kelamin secara berlebihan"
-G020,"Diare (terlalu sering, bisa encer, bisa disertai darah) / Gangguan pencernaan"
-G021,"Kucing terlalu sering merejan"
-G022,"Bagian perut kucing tegang"
-G023,"Bercak bersisik pada kulit / Kulit mengelupas"
-G024,"Muncul cairan berwarna gelap dari telinga / Kotoran telinga tebal kehitaman/kemerahan"
-G025,"Mata berair / Bengkak"
-G026,"Peradangan akibat gigitan"
-G027,"Terdapat bagian kulit yang menonjol"
-G028,"Ditemukan Kutu / Caplak / Pinjal"
-G029,"Muntah"
-G030,"Konjungtiva pucat"
-G031,"Kelenjar getah bening membesar"
-G032,"Bersin / Keluar leleran hidung / Batuk"
-G033,"Dehidrasi"
-G034,"Sesak nafas"
-G035,"Keluar air liur berlebihan"
-G036,"Gusi berdarah"
-G037,"Bau mulut / Bau nafas tidak sedap"
-G038,"Frekuensi Buang Air Besar (BAB) menurun"
-G039,"Kulit bersisik"
-G040,"Kepala miring / Tidak bisa berjalan lurus"
-G041,"Kurus tapi perut buncit"
-G042,"Ada cacing pada kotoran atau saat muntah"
-G043,"Ekor berminyak dan berbau / Lembab di bagian ekor"
-G044,"Keluar cairan kecoklatan dari ekor"
-G045,"Benjolan cekung di tubuh"
-G046,"Infeksi borok bernanah di wajah/hidung / Nanah berbau busuk"
-G047,"Kulit sekitar leher memerah"
-G048,"Bintik merah di kulit area dagu / Banyak komedo/bintik hitam di dagu/mulut"
-G049,"Terdapat lubang bekas jerawat"
-G050,"Kulit sekitar telinga berlubang / Berjamur"
-G051,"Benjolan seperti bisul (bengkak di kepala, kaki depan, ekor, pinggang)"
-G052,"Dagu terlihat kotor"
-G053,"Bau menyengat dari kulit"
-G054,"Berat badan mengalami penurunan"
+kode_gejala,nama_gejala,deskripsi,id_kelompok
+G001,"Demam / Suhu tubuh meningkat","Kucing terasa lebih hangat dari biasanya, terutama di bagian telinga dan perut. Suhu normal kucing adalah 38.1°C - 39.2°C.",1
+G002,"Menggaruk, menjilat, atau menggigit bagian tubuh secara berlebihan","Kucing terus-menerus menggaruk atau menjilati area tertentu hingga menyebabkan iritasi atau kerontokan bulu.",6
+G003,"Kerontokan bulu atau kebotakan","Bulu rontok secara tidak normal, membentuk area botak (alopecia), atau menipis di bagian tertentu.",6
+G004,"Ruam kemerahan pada kulit / Lesi melingkar","Munculnya bintik-bintik atau area kemerahan pada kulit, kadang membentuk pola melingkar yang khas.",6
+G005,"Penebalan kulit di bagian tertentu","Kulit di area yang terinfeksi menjadi lebih tebal, keras, dan terkadang berkerut dibandingkan kulit normal.",6
+G006,"Kulit terlihat kering / Kasar","Kulit kehilangan kelembapannya, tampak bersisik, kusam, dan terasa kasar saat disentuh.",6
+G007,"Muncul ketombe pada rambut","Terlihat serpihan kulit mati berwarna putih pada bulu kucing.",6
+G008,"Terdapat kerak pada kulit","Adanya lapisan keras dan kering pada permukaan kulit, sering ditemukan di sekitar telinga, mulut, atau punggung.",6
+G009,"Sering menggelengkan kepala","Kucing menggoyangkan kepalanya secara berulang kali, sering kali sebagai respons terhadap gatal atau nyeri di telinga.",2
+G010,"Telinga berbau menyengat / Bau tak sedap","Telinga mengeluarkan aroma yang tidak normal, busuk, atau asam yang menandakan adanya infeksi.",3
+G011,"Perubahan perilaku (gelisah, agresif, sensitif)","Kucing menjadi lebih mudah marah, cemas, bersembunyi, atau lebih sensitif dari biasanya.",9
+G012,"Mengeluarkan nanah dari kelenjar susu","Keluarnya cairan kental berwarna kekuningan atau kehijauan dari puting susu, menandakan infeksi (mastitis).",1
+G013,"Kelenjar susu memerah, meradang, atau bengkak","Area di sekitar puting susu tampak bengkak, kemerahan, dan terasa hangat saat disentuh.",1
+G014,"Kucing merasa kesakitan","Kucing menunjukkan tanda-tanda nyeri seperti mengeong berlebihan atau tidak mau disentuh.",1
+G015,"Nafsu makan menurun / Berkurang","Kucing makan lebih sedikit dari biasanya, atau bahkan menolak makanan sama sekali.",1;4
+G016,"Kucing terlihat lemas / Lesu / Lemah","Kucing kurang aktif, lebih banyak tidur, dan tidak bersemangat untuk bermain.",1
+G017,"Perut kucing membesar (bukan hamil)","Pembesaran abnormal pada area perut yang tidak terkait dengan kehamilan.",4
+G018,"Keluar leleran seperti nanah dari kelamin","Adanya cairan abnormal (kental, berwarna, berbau) yang keluar dari vulva atau penis.",8
+G019,"Menjilati bagian kelamin secara berlebihan","Kucing sering menjilati area genitalnya, yang merupakan tanda iritasi atau infeksi.",8;9
+G020,"Diare (bisa encer atau disertai darah)","Feses kucing menjadi cair, tidak berbentuk, dan frekuensi buang air besar meningkat.",4
+G021,"Kucing terlalu sering merejan","Kucing berulang kali mengambil posisi buang air tetapi hanya sedikit atau tidak ada feses/urin yang keluar.",4;8
+G022,"Bagian perut kucing tegang","Otot perut terasa kencang atau keras saat disentuh, seringkali menandakan rasa sakit.",4
+G023,"Bercak bersisik pada kulit / Kulit mengelupas","Adanya area kulit yang kering dan mengelupas, membentuk serpihan atau sisik.",6
+G024,"Muncul cairan berwarna gelap dari telinga","Kotoran telinga tampak seperti bubuk kopi, berwarna coklat tua atau hitam, tanda khas tungau telinga.",3
+G025,"Mata berair / Bengkak","Mata menghasilkan air mata berlebih, tampak sembab, atau kelopak mata membengkak.",7
+G026,"Peradangan akibat gigitan","Area kulit yang meradang, bengkak, dan kemerahan akibat gigitan kutu atau serangga lain.",6
+G027,"Terdapat bagian kulit yang menonjol","Munculnya benjolan atau pembengkakan yang tidak normal di bawah permukaan kulit.",6
+G028,"Ditemukan Kutu / Caplak / Pinjal","Terlihatnya parasit kecil bergerak di antara bulu kucing atau menempel pada kulit.",6
+G029,"Muntah","Kucing mengeluarkan isi perutnya, bisa berupa makanan, cairan, atau busa.",4
+G030,"Konjungtiva pucat","Selaput lendir di bagian dalam kelopak mata tampak pucat atau putih, bukan merah muda yang sehat.",1;7
+G031,"Kelenjar getah bening membesar","Teraba benjolan di area seperti bawah rahang, leher, atau belakang kaki.",1
+G032,"Bersin / Keluar leleran hidung / Batuk","Gejala yang mirip flu, seperti bersin-bersin, hidung berair (ingusan), atau batuk.",3
+G033,"Dehidrasi","Kucing kekurangan cairan, ditandai dengan gusi yang lengket atau kulit yang tidak elastis.",1
+G034,"Sesak nafas","Kucing bernapas dengan cepat, terengah-engah, atau menggunakan otot perut untuk bernapas.",3
+G035,"Keluar air liur berlebihan","Produksi air liur (iler) yang tidak normal banyaknya, membuat area mulut dan dagu basah.",4
+G036,"Gusi berdarah","Gusi mudah berdarah saat makan atau disentuh, sering disertai peradangan.",4
+G037,"Bau mulut / Bau nafas tidak sedap","Napas kucing mengeluarkan bau yang busuk, seringkali menandakan masalah gigi atau pencernaan.",3;4
+G038,"Frekuensi Buang Air Besar (BAB) menurun","Kucing mengalami kesulitan buang air besar (sembelit).",4
+G039,"Kulit bersisik","Lapisan luar kulit mengelupas dan membentuk sisik-sisik kering.",6
+G040,"Kepala miring / Tidak bisa berjalan lurus","Kucing memiringkan kepalanya ke satu sisi atau kehilangan keseimbangan saat berjalan (ataksia).",2
+G041,"Kurus tapi perut buncit","Badan kucing tampak kurus, namun bagian perutnya membesar secara tidak proporsional.",1;4
+G042,"Ada cacing pada kotoran atau saat muntah","Terlihatnya cacing (seperti beras atau mie) pada feses atau muntahan kucing.",4
+G043,"Ekor berminyak dan berbau / Lembab di bagian ekor","Area pangkal ekor terasa berminyak, lengket, dan mengeluarkan bau yang tidak sedap (stud tail).",6
+G044,"Keluar cairan kecoklatan dari ekor","Keluarnya sekresi berwarna coklat atau kehitaman dari kelenjar di area pangkal ekor.",6
+G045,"Benjolan cekung di tubuh","Munculnya benjolan yang memiliki bagian tengah yang cekung atau seperti kawah (eosinophilic granuloma).",6
+G046,"Infeksi borok bernanah di wajah/hidung","Luka terbuka (borok) yang terinfeksi dan mengeluarkan nanah, seringkali berbau busuk.",6
+G047,"Kulit sekitar leher memerah","Iritasi atau peradangan pada kulit di area leher, bisa disebabkan oleh alergi atau garukan.",6
+G048,"Bintik merah di kulit area dagu / Banyak komedo","Munculnya bintik-bintik hitam (komedo) atau benjolan merah meradang di area dagu (jerawat kucing).",6
+G049,"Terdapat lubang bekas jerawat","Adanya bekas luka berupa lubang kecil pada kulit setelah jerawat atau komedo pecah.",6
+G050,"Kulit sekitar telinga berlubang / Berjamur","Luka atau lubang pada daun telinga, seringkali disertai dengan tanda-tanda infeksi jamur.",3
+G051,"Benjolan seperti bisul","Benjolan yang bengkak, merah, berisi nanah, dan terasa sakit saat disentuh (abses).",6
+G052,"Dagu terlihat kotor","Area dagu tampak kotor dengan bintik-bintik hitam atau sisa makanan yang menempel.",6
+G053,"Bau menyengat dari kulit","Kulit kucing mengeluarkan bau yang tidak sedap secara umum.",6
+G054,"Berat badan mengalami penurunan","Penurunan berat badan yang signifikan dalam waktu singkat tanpa ada perubahan diet.",1
