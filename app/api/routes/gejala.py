@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies.gejala_manager import GejalaManager, get_gejala_manager
 from app.api.dependencies.sessions import get_async_session
 from app.db.models.gejala import Gejala
+from app.db.models.kelompok import Kelompok
 from app.schemas.gejala import GejalaCreate, GejalaRead, GejalaUpdate
+from app.schemas.kelompok import KelompokRead
 from app.schemas.pagination import PaginationSchema
 from app.utils.pagination import paginate
 
@@ -27,8 +29,18 @@ class _Pakar:
         return await self.manager.create(gejala)
 
     @r.get("/gejala", response_model=PaginationSchema[GejalaRead])
-    async def get_all_gejala(self):
-        return await paginate(self.session, select(Gejala), 1, 9999999)
+    async def get_all_gejala(
+        self, kelompok_id: int | None = None, page: int = 1, per_page: int = 200
+    ):
+        if kelompok_id:
+            query = (
+                select(Gejala)
+                .join(Gejala.kelompoks)
+                .filter(Kelompok.id == kelompok_id)
+            )
+        else:
+            query = select(Gejala)
+        return await paginate(self.session, query, page, per_page)
 
     @r.get("/gejala/{gejala_id}", response_model=GejalaRead)
     async def get_gejala_by_id(self, gejala_id: str):
