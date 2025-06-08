@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CHAR, VARCHAR, ForeignKey, Integer
+from sqlalchemy import CHAR, VARCHAR, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -17,6 +17,9 @@ class Gejala(TimeStampMixin, Base):
         CHAR(5), primary_key=True, autoincrement=False, nullable=False
     )
     nama: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, unique=True)
+    image_url: Mapped[str] = mapped_column(VARCHAR(255), nullable=True)
+    deskripsi: Mapped[str] = mapped_column(Text(), default="", nullable=True)
+    pertanyaan: Mapped[str] = mapped_column(Text(), default="", nullable=False)
 
     rules: Mapped[list["Rule"]] = relationship(
         "Rule",

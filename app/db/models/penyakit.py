@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CHAR, VARCHAR
+from sqlalchemy import CHAR, VARCHAR, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -19,6 +19,10 @@ class Penyakit(TimeStampMixin, Base):
     nama: Mapped[str] = mapped_column(
         VARCHAR(255), autoincrement=False, nullable=False, unique=True
     )
+    image_url: Mapped[str] = mapped_column(VARCHAR(255), nullable=True)
+    deskripsi: Mapped[str] = mapped_column(Text(), default="", nullable=True)
+    solusi: Mapped[str] = mapped_column(Text(), default="", nullable=False)
+    pencegahan: Mapped[str] = mapped_column(Text(), default="", nullable=True)
 
     rules: Mapped[list["Rule"]] = relationship(
         "Rule",
