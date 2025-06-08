@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import ClassVar, Generic, Optional, Sequence, Set, Tuple, TypeVar
+from typing import ClassVar, Generic, Sequence, Set, Tuple, TypeVar
 
 ModelType = TypeVar("ModelType")
 
@@ -31,7 +31,7 @@ class IDHelper(Generic[ModelType]):
     def get_id(self, item: ModelType) -> str:
         return getattr(item, self.field_id)
 
-    def validate_format(self, id_value: str) -> Tuple[bool, Optional[str]]:
+    def validate_format(self, id_value: str):
         """
         Validates the format of an ID
         Returns: (is_valid, error_message)
@@ -55,7 +55,7 @@ class IDHelper(Generic[ModelType]):
                 length=self.config.length
             )
 
-        return True, None
+        return True, ""
 
     def create_id(self, existing_ids: Set[str], nums_ids: Set[int]) -> str:
         """
@@ -67,7 +67,7 @@ class IDHelper(Generic[ModelType]):
             str: A new unique ID
         """
         if not nums_ids:
-            return f"{self.config.prefix}{'0' * self.config.numeric_length}"
+            return f"{self.config.prefix}{'0' * (self.config.numeric_length - 1)}1"
 
         # Try to fill gaps first
         expected = set(range(1, max(nums_ids) + 1))
