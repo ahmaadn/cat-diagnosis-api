@@ -36,7 +36,7 @@ class ErrorCode(StrEnum):
     NOT_VALID_ID_GEJALA = auto()
 
     # KELOMPOK
-    NOT_FOUND_KELOMPOK = auto()
+    KELOMPOK_NOT_FOUND = auto()
     ID_KELOMPOK_DUPLICATE = auto()
     NAMA_KELOMPOK_DUPLICATE = auto()
     NOT_VALID_ID_KELOMPOK = auto()

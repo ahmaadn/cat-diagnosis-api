@@ -1,8 +1,4 @@
-from typing import TypeVar
-
 from pydantic import BaseModel, ConfigDict
-
-_T = TypeVar("_T")
 
 
 class BaseSchema(BaseModel):

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status
+from fastapi.responses import JSONResponse
 from fastapi_utils.cbv import cbv
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,8 +9,8 @@ from app.api.dependencies.kelompok_manager import (
     get_kelompok_manager,
 )
 from app.api.dependencies.sessions import get_async_session
-from app.db.models.gejala import Kelompok
-from app.schemas.gejala import (
+from app.db.models.kelompok import Kelompok
+from app.schemas.kelompok import (
     KelompokCreate,
     KelompokRead,
     KelompokUpdate,
@@ -37,10 +38,18 @@ class _Kelompok:
     async def get_all_kelompok(self):
         return await paginate(self.session, select(Kelompok), 1, 9999999)
 
-    @r.get("/kelompok/{kelompok_id}", response_model=KelompokRead)
-    async def get_kelompok_by_id(self, kelompok_id: int):
-        return await self.manager.get_by_id_or_fail(kelompok_id)
+    # @r.get("/kelompok/{kelompok_id}", response_model=KelompokRead)
+    # async def get_kelompok_by_id(self, kelompok_id: int):
+    #     return await self.manager.get_by_id_or_fail(kelompok_id)
 
     @r.put("/kelompok/{kelompok_id}", response_model=KelompokRead)
     async def update_kelompok(self, kelompok_id: int, new_data: KelompokUpdate):
         return await self.manager.update(item_id=kelompok_id, item_update=new_data)
+
+    @r.delete("/kelompok/{kelompok_id}", status_code=status.HTTP_202_ACCEPTED)
+    async def delete_kelompok(self, kelompok_id: int):
+        await self.manager.delete(item_id=kelompok_id)
+        return JSONResponse(
+            {"message": f"success delete kelompok id {kelompok_id}"},
+            status_code=status.HTTP_202_ACCEPTED,
+        )

@@ -1,8 +1,22 @@
+from pydantic import Field
+
 from app.schemas.base import BaseSchema
+from app.schemas.mixin import IdMixinSchema, TimeStampMixinSchema
 
 
-class KelompokCreate(BaseSchema):
+class GejalaCreate(BaseSchema):
+    id: str | None = None
     nama: str
+    pertanyaan: str
+    deskripsi: str | None = None
+    kelompoks: list[int] = Field(default_factory=list)
+
+
+class GejalaUpdate(BaseSchema):
+    nama: str | None = None
+    deskripsi: str | None = None
+    pertanyaan: str | None = None
+    kelompoks: list[int] | None = None
 
 
 class KelompokRead(BaseSchema):
@@ -10,27 +24,9 @@ class KelompokRead(BaseSchema):
     nama: str
 
 
-class KelompokUpdate(BaseSchema):
+class GejalaRead(BaseSchema, TimeStampMixinSchema, IdMixinSchema):
     nama: str
-
-
-class GejalaCreate(BaseSchema):
-    id: str | None = None
-    nama: str
-    id_kelompok: list[int]
-
-
-class GejalaUpdate(BaseSchema):
-    nama: str | None = None
-    id_kelompok: list[int] | None = None
-
-
-class KelomopokGejalaCreate(BaseSchema):
-    id_gejala: str
-    id_kelompok: int
-
-
-class GejalaRead(BaseSchema):
-    id: str
-    nama: str
+    image_url: str | None = None
+    deskripsi: str | None = None
+    pertanyaan: str
     kelompoks: list[KelompokRead]

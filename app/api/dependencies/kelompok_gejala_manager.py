@@ -1,23 +1,16 @@
 import logging
 from typing import Any
 
-from fastapi import Depends, status
+from fastapi import status
 from sqlalchemy import exc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies.sessions import get_async_session
-from app.db.models.kelompok import Kelompok
 from app.db.models.kelompok_gejala import KelompokGejala
-from app.schemas.kelompok import (
-    KelomopokGejalaCreate,
-    KelompokCreate,
-    KelompokUpdate,
-)
+from app.schemas.kelompok import KelomopokGejalaCreate
 from app.utils.base_manager import BaseManager
 from app.utils.common import ErrorCode
 from app.utils.exceptions import (
     AppExceptionError,
-    NotValidIDError,
 )
 
 logger = logging.getLogger(__name__)
@@ -78,8 +71,15 @@ class KelompokGejalaManager(
     async def delete_all(self, id_gejala: str):
         try:
             query = select(self.model).where(self.model.id_gejala == id_gejala)
-            await self.session.delete(query)
-            await self.session.commit()
+            kelompoks = await self._execute_query(query)
+            kelompoks = kelompoks.scalars().all()
+            print(kelompoks)
+            if not kelompoks:
+                return
+
+            for kelompok in kelompoks:
+                await self.session.delete(kelompok)
+                await self.session.commit()
         except exc.IntegrityError as e:
             await self.session.rollback()
             raise AppExceptionError(
@@ -97,35 +97,3 @@ class KelompokGejalaManager(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             ) from None
-
-
-class KelompokManager(BaseManager[Kelompok, KelompokCreate, KelompokUpdate]):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session, Kelompok)
-
-    @property
-    def error_codes(self):
-        return {
-            "not_found": ErrorCode.KELOMPOK_NOT_FOUND,
-            "duplicate_id": ErrorCode.ID_KELOMPOK_DUPLICATE,
-            "duplicate_nama": ErrorCode.NAMA_KELOMPOK_DUPLICATE,
-            "not_valid_id": ErrorCode.NOT_VALID_ID_KELOMPOK,
-        }
-
-    async def is_valid_ids(self, ids: list[int]):
-        kelompoks = await self.get_all()
-        exists = {kelompok.id for kelompok in kelompoks}
-        missing_ids = set(ids) - exists
-
-        if missing_ids:
-            raise NotValidIDError(
-                "ids tidak valid",
-                f"ids: {' '.join(map(str, missing_ids))}",
-                status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                error_code=self.error_codes["not_found"],
-                data=list(map(str, missing_ids)),
-            )
-
-
-async def get_kelompok_manager(session: AsyncSession = Depends(get_async_session)):
-    yield KelompokManager(session)

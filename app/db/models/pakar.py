@@ -1,9 +1,8 @@
 from sqlalchemy import CHAR, VARCHAR
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 from app.db.models.mixin import TimeStampMixin
-from app.db.models.rule import RuleCf
 
 
 class Pakar(TimeStampMixin, Base):
@@ -16,4 +15,4 @@ class Pakar(TimeStampMixin, Base):
         VARCHAR(100), autoincrement=False, nullable=False, unique=True
     )
 
-    rule_cfs: Mapped[list[RuleCf]] = relationship("RuleCf", back_populates="pakar")
+    # rule_cfs: Mapped[list[RuleCf]] = relationship("RuleCf", back_populates="pakar")

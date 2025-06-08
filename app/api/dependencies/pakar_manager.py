@@ -4,10 +4,10 @@ from typing import Any, Sequence
 from fastapi import Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies.base_manager import BaseManager
 from app.api.dependencies.sessions import get_async_session
 from app.db.models.pakar import Pakar
 from app.schemas.pakar import PakarCreate, PakarUpdate
+from app.utils.base_manager import BaseManager
 from app.utils.common import ErrorCode
 from app.utils.exceptions import AppExceptionError, DuplicateNamaError
 

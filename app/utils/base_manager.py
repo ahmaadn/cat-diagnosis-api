@@ -10,6 +10,7 @@ from sqlalchemy.sql.expression import func
 
 from app.utils.common import ErrorCode
 from app.utils.exceptions import AppExceptionError, NotValidIDError
+from app.utils.id_healper import IDConfig, IDHelper
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +25,22 @@ class BaseManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     Uses AppExceptionError for error handling.
     """
 
-    def __init__(self, session: AsyncSession, model: Type[ModelType]):
+    def __init__(
+        self,
+        session: AsyncSession,
+        model: Type[ModelType],
+        id_config: IDConfig | None = None,
+        field_id: str = "id",
+    ):
         if not model:
             raise ValueError("SQLAlchemy model must be provided.")
         self.session = session
         self.model = model
         self._model_name = self.model.__name__
+        self.id_config = id_config or IDConfig(
+            prefix="G", length=5, numeric_length=4, example="G0001"
+        )
+        self.id_helper = IDHelper[ModelType](self.id_config, field_id)
 
     async def _execute_query(self, query):
         try:
@@ -89,14 +100,14 @@ class BaseManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             "not_valid_id": ErrorCode.NOT_VALID_ID,
         }
 
-    async def create(self, item_in: CreateSchemaType) -> ModelType:
+    async def create(self, input_data: CreateSchemaType) -> ModelType:
         logger.info(
             f"Creating new {self._model_name} with data: "
-            f"{item_in.model_dump(exclude_unset=True)}"
+            f"{input_data.model_dump(exclude_unset=True)}"
         )
 
-        await self.validate_schema(item_in)
-        db_item = await self.build(item_in)
+        await self.validate_schema(input_data)
+        db_item = await self.build(input_data)
         self.session.add(db_item)
         return await self.save(db_item)
 
@@ -238,7 +249,6 @@ class BaseManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             await self.session.refresh(db_item)
             logger.info(f"{self._model_name} ID: {item_id} updated.")
             return db_item
-
         except exc.IntegrityError as e:
             await self.session.rollback()
             logger.error(

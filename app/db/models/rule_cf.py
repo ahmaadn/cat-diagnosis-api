@@ -1,0 +1,30 @@
+from typing import TYPE_CHECKING
+
+from sqlalchemy import CHAR, Double, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import Base
+
+if TYPE_CHECKING:
+    pass
+
+
+class RuleCf(Base):
+    __tablename__ = "rule_cf"
+
+    id_rule: Mapped[str] = mapped_column(
+        CHAR(5),
+        ForeignKey("rule.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    id_pakar: Mapped[str] = mapped_column(
+        CHAR(5),
+        ForeignKey("pakar.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    nilai: Mapped[float] = mapped_column(Double(precision=53), nullable=False)
+
+    # rule: Mapped["Rule"] = relationship("Rule", back_populates="rule_cfs")
+    # pakar: Mapped["Pakar"] = relationship("Pakar", back_populates="rule_cfs")
