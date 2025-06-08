@@ -40,3 +40,12 @@ class _Penyakit:
     @r.put("/penyakit/{penyakit_id}", response_model=PenyakitRead)
     async def update_pebyakit(self, penyakit_id: str, new_data: PenyakitUpdate):
         return await self.manager.update(item_id=penyakit_id, item_update=new_data)
+
+    @r.delete("/penyakit/{penyakit_id}", response_model=PenyakitRead)
+    async def delete_penyakit(self, penyakit_id: str):
+        await self.manager.delete(item_id=penyakit_id)
+        return {"message": f"success delete penyakit id {penyakit_id}"}
+
+    # @r.get("/penyakit/{penyakit_id}/rules", response_model=PenyakitRead)
+    # async def get_gejala_by_penyakit(self, penyakit_id: str, new_data: PenyakitUpdate):
+    #     return await self.manager.update(item_id=penyakit_id, item_update=new_data)

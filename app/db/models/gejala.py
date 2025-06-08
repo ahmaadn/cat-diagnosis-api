@@ -24,7 +24,7 @@ class Gejala(TimeStampMixin, Base):
 
     rules = relationship(
         "Rule",
-        backref="gejala",
+        back_populates="gejala",
         cascade="all, delete-orphan",
     )
 
