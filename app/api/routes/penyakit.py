@@ -30,8 +30,8 @@ class _Penyakit:
         return await self.manager.create(penyakit)
 
     @r.get("/penyakit", response_model=PaginationSchema[PenyakitRead])
-    async def get_all_penyakit(self):
-        return await paginate(self.session, select(Penyakit), 1, 9999999)
+    async def get_all_penyakit(self, page=1, per_page=200):
+        return await paginate(self.session, select(Penyakit), page, per_page)
 
     @r.get("/penyakit/{penyakit_id}", response_model=PenyakitRead)
     async def get_penyakit_by_id(self, penyakit_id: str):
