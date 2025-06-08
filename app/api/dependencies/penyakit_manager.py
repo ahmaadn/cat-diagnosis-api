@@ -9,14 +9,26 @@ from app.db.models.penyakit import Penyakit
 from app.schemas.penyakit import PenyakitCreate, PenyakitUpdate
 from app.utils.base_manager import BaseManager
 from app.utils.common import ErrorCode
-from app.utils.exceptions import AppExceptionError, DuplicateNamaError
+from app.utils.exceptions import (
+    DuplicateIDError,
+    DuplicateNamaError,
+    NotValidIDError,
+)
+from app.utils.id_healper import IDConfig
 
 logger = logging.getLogger(__name__)
 
 
 class PenyakitManager(BaseManager[Penyakit, PenyakitCreate, PenyakitUpdate]):
     def __init__(self, session: AsyncSession):
-        super().__init__(session, Penyakit)
+        super().__init__(
+            session=session,
+            model=Penyakit,
+            id_config=IDConfig(
+                prefix="P", length=5, numeric_length=4, example="P0001"
+            ),
+            field_id="id",
+        )
 
     @property
     def error_codes(self):
@@ -35,32 +47,23 @@ class PenyakitManager(BaseManager[Penyakit, PenyakitCreate, PenyakitUpdate]):
         await self.is_valid_id(item_in.id)
         await self.is_valid_nama(penyakits, item_in.nama)
 
-    async def is_valid_id(self, item_id: str):
-        exception = AppExceptionError(
-            "ID tidak balid",
-            f"ID: {item_id}",
-            "Contoh Id Valid : P00001",
-            error_code=self.error_codes["not_valid_id"],
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        )
-
-        if len(item_id) != 5:
-            raise exception
-
-        if item_id.isnumeric():
-            raise exception
-
-        code, num = item_id[:1], item_id[1:]
-        if code != "P" or not num.isdigit():
-            raise exception
-
-        already_exist = await self.get_by_id(item_id)
-        if already_exist:
-            raise AppExceptionError(
-                "ID di temukan sama",
-                f"ID: {item_id}",
+    async def is_valid_id(self, data_id: str):
+        is_valid, error_message = self.id_helper.validate_format(data_id)
+        if not is_valid:
+            raise NotValidIDError(
+                error_message,
+                f"Contoh ID valid: {self.id_config.example}",
+                error_code=self.error_codes["not_valid_id"],
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            )
+
+        # Check for existing ID
+        already_exist = await self.get_by_id(data_id)
+        if already_exist:
+            raise DuplicateIDError(
+                f"ID: {data_id} telah terdaftar",
                 error_code=self.error_codes["duplicate_id"],
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
             )
 
     async def is_valid_nama(self, penyakits: Sequence[Penyakit], nama: str):
@@ -73,27 +76,9 @@ class PenyakitManager(BaseManager[Penyakit, PenyakitCreate, PenyakitUpdate]):
                     error_code=self.error_codes["duplicate_nama"],
                 )
 
-    async def create_id(self, penyakits: Sequence[Penyakit]) -> str:
-        existing_ids = {penyakit.id for penyakit in penyakits}
-
-        nums_ids = {int(penyakit.id[1:]) for penyakit in penyakits}
-        expected = set(range(min(nums_ids), max(nums_ids) + 1))
-        missing_nums = expected - nums_ids
-
-        # Assign missing IDs
-        for num in sorted(missing_nums):
-            new_id = f"P{num:04d}"
-
-            if new_id not in existing_ids:
-                return new_id
-
-        # Assign new IDs for remaining entries
-        next_num = max(nums_ids, default=0) + 1
-        while True:
-            new_id = f"P{next_num:04d}"
-            if new_id not in existing_ids:
-                return new_id
-            next_num += 1
+    async def create_id(self, existing_items: Sequence[Penyakit]) -> str:
+        existing_ids, nums_ids = self.id_helper.extract_numeric_ids(existing_items)
+        return self.id_helper.create_id(existing_ids, nums_ids)
 
     async def _validate_update(self, db_item: Penyakit, update_data: dict[str, Any]):
         validated_update_dict = {}
