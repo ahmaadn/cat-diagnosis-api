@@ -59,6 +59,7 @@ class GejalaManager(BaseManager[Gejala, GejalaCreate, GejalaUpdate]):
 
         # Create relasi gejala dengan kelomook
         await self.kelompok_gejala_manager.bulks(db_item.id, list(kelompoks))
+        await self.session.refresh(db_item)
         return db_item
 
     async def update(self, *, item_id: Any, item_update: GejalaUpdate) -> Gejala:
