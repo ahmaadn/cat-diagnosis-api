@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CHAR, Double, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -13,7 +13,7 @@ class RuleCf(Base):
     __tablename__ = "rule_cf"
 
     id_rule: Mapped[str] = mapped_column(
-        CHAR(5),
+        CHAR(8),
         ForeignKey("rule.id", ondelete="CASCADE"),
         primary_key=True,
         nullable=False,
@@ -26,5 +26,5 @@ class RuleCf(Base):
     )
     nilai: Mapped[float] = mapped_column(Double(precision=53), nullable=False)
 
-    # rule: Mapped["Rule"] = relationship("Rule", back_populates="rule_cfs")
-    # pakar: Mapped["Pakar"] = relationship("Pakar", back_populates="rule_cfs")
+    rule = relationship("Rule", back_populates="rule_cfs")
+    pakar = relationship("Pakar", back_populates="rule_cfs")

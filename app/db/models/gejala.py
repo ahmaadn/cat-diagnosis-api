@@ -22,11 +22,11 @@ class Gejala(TimeStampMixin, Base):
     deskripsi: Mapped[str] = mapped_column(Text(), default="", nullable=True)
     pertanyaan: Mapped[str] = mapped_column(Text(), default="", nullable=False)
 
-    # rules: Mapped[list["Rule"]] = relationship(
-    #     "Rule",
-    #     backref="gejala",
-    #     cascade="all, delete-orphan",
-    # )
+    rules = relationship(
+        "Rule",
+        backref="gejala",
+        cascade="all, delete-orphan",
+    )
 
     kelompoks = relationship(
         "Kelompok",

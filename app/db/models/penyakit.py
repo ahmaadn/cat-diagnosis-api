@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CHAR, VARCHAR, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.models.mixin import TimeStampMixin
@@ -24,9 +24,9 @@ class Penyakit(TimeStampMixin, Base):
     solusi: Mapped[str] = mapped_column(Text(), default="", nullable=False)
     pencegahan: Mapped[str] = mapped_column(Text(), default="", nullable=True)
 
-    # rules: Mapped[list["Rule"]] = relationship(
-    #     "Rule",
-    #     back_populates="penyakit",
-    #     cascade="all, delete-orphan",
-    #     lazy="selectin",
-    # )
+    rules = relationship(
+        "Rule",
+        back_populates="penyakit",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )

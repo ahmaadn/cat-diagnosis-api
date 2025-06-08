@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CHAR, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -24,8 +24,10 @@ class Rule(Base):
         CHAR(5), ForeignKey("gejala.id", ondelete="CASCADE"), nullable=True
     )
 
-    # penyakit: Mapped["Penyakit"] = relationship("Penyakit", back_populates="rules")
+    penyakit = relationship("Penyakit", back_populates="rules")
 
-    # rule_cfs: Mapped[list["RuleCf"]] = relationship(
-    #     "RuleCf", back_populates="rule", cascade="all, delete-orphan"
-    # )
+    gejala = relationship("Gejala", back_populates="rules")
+
+    rule_cfs = relationship(
+        "RuleCf", back_populates="rule", cascade="all, delete-orphan"
+    )
