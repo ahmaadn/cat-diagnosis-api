@@ -29,7 +29,7 @@ class GejalaManager(BaseManager[Gejala, GejalaCreate, GejalaUpdate]):
             session,
             Gejala,
             id_config=IDConfig(
-                prefix="G", length=5, numeric_length=4, example="G0001"
+                prefix="G", length=5, minimum_length_number=3, example="G001"
             ),
         )
         self.kelompok_manager = KelompokManager(session)

@@ -24,7 +24,7 @@ class RuleManager(BaseManager[Rule, RuleCreate, RuleUpdate]):
         super().__init__(
             session,
             Rule,
-            IDConfig("R", length=8, numeric_length=7, example="R0000001"),
+            IDConfig("R", length=8, minimum_length_number=7, example="R0000001"),
             "id",
         )
         self.penyakit_manager = PenyakitManager(session)

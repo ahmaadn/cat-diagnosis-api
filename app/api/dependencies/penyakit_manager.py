@@ -25,7 +25,7 @@ class PenyakitManager(BaseManager[Penyakit, PenyakitCreate, PenyakitUpdate]):
             session=session,
             model=Penyakit,
             id_config=IDConfig(
-                prefix="P", length=5, numeric_length=4, example="P0001"
+                prefix="P", length=5, minimum_length_number=4, example="P0001"
             ),
             field_id="id",
         )

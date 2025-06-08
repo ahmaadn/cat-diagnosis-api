@@ -10,7 +10,7 @@ class IDConfig:
 
     prefix: str
     length: int
-    numeric_length: int
+    minimum_length_number: int
     example: str
     error_messages: ClassVar[dict[str, str]] = {
         "length": "ID harus memiliki panjang {length} karakter",
@@ -36,7 +36,7 @@ class IDHelper(Generic[ModelType]):
         Validates the format of an ID
         Returns: (is_valid, error_message)
         """
-        if len(id_value) != self.config.length:
+        if len(id_value) > self.config.length:
             return False, self.config.error_messages["length"].format(
                 length=self.config.length
             )
@@ -50,10 +50,10 @@ class IDHelper(Generic[ModelType]):
         if not numeric_part.isdigit():
             return False, self.config.error_messages["numeric"]
 
-        if len(numeric_part) != self.config.numeric_length:
-            return False, self.config.error_messages["length"].format(
-                length=self.config.length
-            )
+        # if len(numeric_part) != self.config.numeric_length:
+        #     return False, self.config.error_messages["length"].format(
+        #         length=self.config.length
+        #     )
 
         return True, ""
 
@@ -67,7 +67,7 @@ class IDHelper(Generic[ModelType]):
             str: A new unique ID
         """
         if not nums_ids:
-            return f"{self.config.prefix}{'0' * (self.config.numeric_length - 1)}1"
+            return f"{self.config.prefix}{'0' * (self.config.minimum_length_number - 1)}1"
 
         # Try to fill gaps first
         expected = set(range(1, max(nums_ids) + 1))
@@ -75,14 +75,20 @@ class IDHelper(Generic[ModelType]):
 
         if missing_nums:
             for num in missing_nums:
-                new_id = f"{self.config.prefix}{num:0{self.config.numeric_length}d}"
+                i = str(num)
+                if len(i) < self.config.minimum_length_number:
+                    i = i.zfill(self.config.minimum_length_number)
+                new_id = f"{self.config.prefix}{i}"
                 if new_id not in existing_ids:
                     return new_id
 
         # No gaps found, create new sequential ID
         next_num = max(nums_ids) + 1
         while True:
-            new_id = f"{self.config.prefix}{next_num:0{self.config.numeric_length}d}"
+            i = str(next_num)
+            if len(i) <= self.config.minimum_length_number:
+                i = i.zfill(self.config.minimum_length_number)
+            new_id = f"{self.config.prefix}{i}"
             if new_id not in existing_ids:
                 return new_id
             next_num += 1

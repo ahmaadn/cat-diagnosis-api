@@ -38,7 +38,7 @@ class BaseManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
         self._model_name = self.model.__name__
         self.id_config = id_config or IDConfig(
-            prefix="G", length=5, numeric_length=4, example="G0001"
+            prefix="G", length=5, minimum_length_number=4, example="G0001"
         )
         self.id_helper = IDHelper[ModelType](self.id_config, field_id)
 
