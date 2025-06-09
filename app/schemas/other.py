@@ -1,9 +1,6 @@
-from fastapi import APIRouter
 from pydantic import Field
 
 from app.schemas.base import BaseSchema
-
-r = router = APIRouter(tags=["Dashboard"])
 
 
 class SystemStats(BaseSchema):
