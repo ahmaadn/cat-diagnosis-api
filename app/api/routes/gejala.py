@@ -72,7 +72,7 @@ class _Pakar:
         return await paginate(self.session, query, page, per_page)
 
     @r.get(
-        "/{gejala_id}/rules",
+        "/gejala/{gejala_id}/rules",
         response_model=PaginationSchema[RuleByGejalaRead],
         summary="Get Rules by Gejala ID",
     )
