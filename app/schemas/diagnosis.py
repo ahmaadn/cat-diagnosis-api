@@ -47,6 +47,9 @@ class PenyakitResult(BaseSchema):
         ..., description="Skor akhir keyakinan dalam persentase (%)."
     )
     matching_gejala_count: int = Field(..., description="Jumlah gejala yang cocok.")
+    matching_gejala_ids: list[str] = Field(
+        default_factory=list, description="ID gejala yang cocok."
+    )
     evidence_details: list[EvidenceDetail] = Field(
         default_factory=list,
         description="Rincian perhitungan untuk setiap gejala yang cocok.",
