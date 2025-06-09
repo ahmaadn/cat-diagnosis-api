@@ -57,3 +57,11 @@ class RuleRead(BaseSchema):
     penyakit: PenyakitRead
     gejala: GejalaRead
     rule_cfs: list[RuleCfRead] = Field(default_factory=list)
+
+
+class RuleByPenyakitRead(BaseSchema):
+    """Skema untuk membaca data Rule beserta relasinya."""
+
+    id: str
+    id_gejala: str
+    rule_cfs: list[RuleCfRead] = Field(default_factory=list)
