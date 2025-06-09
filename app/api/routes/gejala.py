@@ -7,9 +7,11 @@ from app.api.dependencies.gejala_manager import GejalaManager, get_gejala_manage
 from app.api.dependencies.sessions import get_async_session
 from app.db.models.gejala import Gejala
 from app.db.models.kelompok import Kelompok
+from app.db.models.rule import Rule
 from app.schemas.gejala import GejalaCreate, GejalaRead, GejalaUpdate
 from app.schemas.kelompok import KelompokRead
 from app.schemas.pagination import PaginationSchema
+from app.schemas.rule import RuleByGejalaRead
 from app.utils.pagination import paginate
 
 r = router = APIRouter(tags=["Gejala"])
@@ -67,4 +69,21 @@ class _Pakar:
             select(Kelompok).join(Kelompok.gejalas).filter(Gejala.id == gejala_id)
         )
 
+        return await paginate(self.session, query, page, per_page)
+
+    @r.get(
+        "/{gejala_id}/rules",
+        response_model=PaginationSchema[RuleByGejalaRead],
+        summary="Get Rules by Gejala ID",
+    )
+    async def get_rules_by_gejala(
+        self, gejala_id: str, page: int = 1, per_page: int = 20
+    ):
+        """
+        Mengambil daftar semua aturan (rule) di mana gejala ini digunakan.
+        """
+        # Validasi gejala ada
+        await self.manager.get_by_id_or_fail(gejala_id)
+
+        query = select(Rule).where(Rule.id_gejala == gejala_id)
         return await paginate(self.session, query, page, per_page)
