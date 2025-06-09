@@ -48,4 +48,5 @@ class _Rule:
     @r.post("/rules/{rule_id}/cf", response_model=RuleRead)
     async def add_rule_cf(self, rule_id: str, cf_data: RuleCfCreate):
         """Menambahkan atau memperbarui nilai CF dari pakar untuk sebuah aturan."""
-        return await self.manager.add_or_update_cf(rule_id, cf_data)
+        await self.manager.add_or_update_cf(rule_id, cf_data)
+        return await self.manager.get_by_id_or_fail(rule_id)
