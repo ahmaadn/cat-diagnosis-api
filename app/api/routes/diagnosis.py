@@ -106,6 +106,7 @@ async def perform_diagnosis_v2(
 
     results = []
     for _, data in penyakit_cf.items():
+        print(data["evidence"])
         if data["cf_combined"] > 0:
             results.append(
                 PenyakitResult(
@@ -113,7 +114,7 @@ async def perform_diagnosis_v2(
                     certainty_score=round(data["cf_combined"] * 100, 2),
                     matching_gejala_count=len(data["evidence"]),
                     matching_gejala_ids=[
-                        evidence["id_gejala"] for evidence in data["evidence"]
+                        evidence.id_gejala for evidence in data["evidence"]
                     ],
                     evidence_details=data["evidence"],
                 )
@@ -200,7 +201,7 @@ async def perform_diagnosis_by_pakar(
                     certainty_score=round(data["cf_combined"] * 100, 2),
                     matching_gejala_count=len(data["evidence"]),
                     matching_gejala_ids=[
-                        evidence["id_gejala"] for evidence in data["evidence"]
+                        evidence.id_gejala for evidence in data["evidence"]
                     ],
                     evidence_details=data["evidence"],
                 )
