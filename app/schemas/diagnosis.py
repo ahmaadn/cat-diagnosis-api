@@ -1,6 +1,7 @@
 from pydantic import Field
 
 from app.schemas.base import BaseSchema
+from app.schemas.gejala import SimpleGejalaRead
 from app.schemas.penyakit import PenyakitRead
 
 
@@ -21,7 +22,7 @@ class EvidenceDetail(BaseSchema):
     Skema untuk merinci perhitungan setiap bukti (gejala) yang cocok.
     """
 
-    id_gejala: str = Field(..., description="ID Gejala yang cocok.")
+    gejala: SimpleGejalaRead = Field(..., description="ID Gejala yang cocok.")
     cf_user: float = Field(
         ..., description="Nilai keyakinan yang dimasukkan pengguna untuk gejala ini."
     )

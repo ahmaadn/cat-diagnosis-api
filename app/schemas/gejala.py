@@ -30,3 +30,9 @@ class GejalaRead(BaseSchema, TimeStampMixinSchema, IdMixinSchema):
     deskripsi: str | None = None
     pertanyaan: str
     kelompoks: list[KelompokRead]
+
+
+class SimpleGejalaRead(BaseSchema, IdMixinSchema):
+    nama: str
+    deskripsi: str | None = None
+    pertanyaan: str

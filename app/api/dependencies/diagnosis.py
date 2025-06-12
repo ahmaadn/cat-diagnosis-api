@@ -165,7 +165,7 @@ class Diagnosis:
             current_data.penyakit_obj = rule.penyakit
 
             evidence = EvidenceDetail(
-                id_gejala=rule.gejala.id,  # type: ignore
+                gejala=rule.gejala,  # type: ignore
                 cf_user=cf_user,
                 # Meskipun fieldnya cf_pakar_avg, ini akan berisi cf_pakar_value
                 # yang bisa jadi nilai spesifik pakar atau rata-rata.
@@ -203,7 +203,7 @@ class Diagnosis:
                         penyakit=penyakit_read_obj,  # type: ignore
                         certainty_score=round(data.cf_combined * 100, 2),
                         matching_gejala_count=len(data.evidence),
-                        matching_gejala_ids=[ev.id_gejala for ev in data.evidence],
+                        matching_gejala_ids=[ev.gejala.id for ev in data.evidence],
                         evidence_details=data.evidence,
                     )
                 )
