@@ -44,9 +44,7 @@ async def clear_database(session_maker: async_sessionmaker):
         Pakar,
     ]
     async with session_maker() as session:
-        for table in track(
-            tables_to_clear, description="[red]Menghapus tabel...[/red]"
-        ):
+        for table in track(tables_to_clear, description="[red]Menghapus tabel...[/red]"):
             await session.execute(delete(table))
         await session.commit()
     console.print("[green]Database berhasil dibersihkan.[/green]")
@@ -137,10 +135,10 @@ async def seed_data(session_maker: async_sessionmaker):
             Penyakit(
                 id=p["kode_penyakit"],
                 nama=p["nama_penyakit"],
-                deskripsi=fake.paragraph(nb_sentences=5),
-                solusi=fake.paragraph(nb_sentences=4),
-                pencegahan=fake.paragraph(nb_sentences=4),
-                image_url=fake.image_url(),
+                deskripsi=p["deskripsi"],
+                solusi=p["solusi"],
+                pencegahan=p["pencegahan"],
+                image_url=f"{p['kode_penyakit']}.jpg",
             )
             for p in penyakit_list_csv
         ]
@@ -172,9 +170,7 @@ async def seed_data(session_maker: async_sessionmaker):
         )
 
         # 5. Seed Relasi KelompokGejala (Langsung dari CSV)
-        console.print(
-            "\n[bold cyan]5. Seeding Relasi Kelompok-Gejala...[/bold cyan]"
-        )
+        console.print("\n[bold cyan]5. Seeding Relasi Kelompok-Gejala...[/bold cyan]")
         kg_relations = []
         for g in gejala_list_csv:
             gejala_id = g["kode_gejala"]
@@ -182,9 +178,7 @@ async def seed_data(session_maker: async_sessionmaker):
             kelompok_ids_str = g.get("id_kelompok", "")
             if kelompok_ids_str:
                 kelompok_ids = [
-                    int(kid.strip())
-                    for kid in kelompok_ids_str.split(";")
-                    if kid.strip()
+                    int(kid.strip()) for kid in kelompok_ids_str.split(";") if kid.strip()
                 ]
                 for kelompok_id in kelompok_ids:
                     kg_relations.append(
@@ -211,9 +205,7 @@ async def seed_data(session_maker: async_sessionmaker):
             ]
         )
         await session.commit()
-        console.print(
-            f"[green]  -> {len(rule_list)} record Rule berhasil dibuat.[/green]"
-        )
+        console.print(f"[green]  -> {len(rule_list)} record Rule berhasil dibuat.[/green]")
 
         # 7. Seed RuleCf
         console.print("\n[bold cyan]7. Seeding Tabel Rule CF...[/bold cyan]")
@@ -229,9 +221,7 @@ async def seed_data(session_maker: async_sessionmaker):
             ]
         )
         await session.commit()
-        console.print(
-            f"[green]  -> {len(cf_list)} record Rule CF berhasil dibuat.[/green]"
-        )
+        console.print(f"[green]  -> {len(cf_list)} record Rule CF berhasil dibuat.[/green]")
 
 
 async def main(clear_all: bool = False):
